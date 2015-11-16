@@ -8,8 +8,28 @@
 
 #import <UIKit/UIKit.h>
 
+@class PTMultiColumnTableView;
+@protocol PTMultiColumnTableViewDataSource <NSObject>
+
+@required
+
+
+- (NSInteger)numberOfColumnsInTableView:(PTMultiColumnTableView *)tableView;
+- (NSInteger)numberOfRowsInTableView:(PTMultiColumnTableView *)tableView;
+- (NSString *)columnNameInColumn:(NSInteger)column;
+- (NSString *)rowNameInRow:(NSInteger)row;
+- (NSString *)contentAtColumn:(NSInteger)column row:(NSInteger)row;
+
+@end
+
+
 @interface PTMultiColumnTableView : UIView
 
 @property (nonatomic, strong) UITableView *tableView;
+
+@property (nonatomic, weak) id<PTMultiColumnTableViewDataSource>dataSource;
+
+- (void)reloadData;
+
 
 @end

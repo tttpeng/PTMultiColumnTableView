@@ -9,8 +9,12 @@
 #import "PTMultiColumnTableView.h"
 
 @interface PTMultiColumnTableView ()
-<UITableViewDataSource, UITableViewDelegate>
+<UITableViewDataSource, UITableViewDelegate,UIScrollViewDelegate>
 
+@property (nonatomic, strong) UIScrollView *contentScrollView;
+@property (nonatomic, strong) UIScrollView *headerScrollView;
+@property (nonatomic, strong) UITableView  *leftTableView;
+@property (nonatomic, strong) UITableView  *contentTableView;
 @end
 
 @implementation PTMultiColumnTableView
@@ -21,63 +25,150 @@
   self = [super initWithFrame:frame];
   if (self) {
     
-    UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(50, 50, self.frame.size.width - 50, self.frame.size.height - 50)];
-    scrollView.bounces = [UIColor brownColor];
-
-    scrollView.bounces = NO;
-    [self addSubview:scrollView];
-
-    UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, 2000, scrollView.frame.size.height)];
-    tableView.delegate = self;
-    tableView.dataSource = self;
-    tableView.bounces = NO;
-    tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
-    [scrollView addSubview:tableView];
-    scrollView.contentSize = tableView.frame.size;
-//    
-//    UIView *line = [[UIView alloc] initWithFrame:CGRectMake(199, 0, 1, scrollView.contentSize.height)];
-//
-//    line.backgroundColor = [UIColor redColor];
-//    [tableView addSubview:line];
-    
-    tableView.backgroundColor = [UIColor grayColor];
+    [self loadHeaderScrollView];
+    [self loadContentScrollView];
+    [self loadLeftView];
   }
   return self;
 }
 
+- (void)didMoveToSuperview
+{
+  [super didMoveToSuperview];
+  [self reloadData];
+  
+}
+
+- (void)reloadData
+{
+  [self loadHeaderData];
+  [self loadLeftViewData];
+  [self loadContentData];
+}
 
 
+#pragma mark - UI
+
+- (void)loadHeaderScrollView
+{
+  UIScrollView *headerScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(100, 0, self.frame.size.width - 100, 50)];
+  headerScrollView.backgroundColor = [UIColor brownColor];
+  headerScrollView.contentSize = CGSizeMake(2000, 50);
+  headerScrollView.delegate = self;
+  [self addSubview:headerScrollView];
+  self.headerScrollView = headerScrollView;
+}
+
+- (void)loadContentScrollView
+{
+  
+  UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(100, 50, self.frame.size.width - 50, self.frame.size.height - 50)];
+  scrollView.bounces = [UIColor brownColor];
+  
+  scrollView.bounces = NO;
+  [self addSubview:scrollView];
+  scrollView.delegate = self;
+  UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, 2000, scrollView.frame.size.height)];
+  tableView.delegate = self;
+  tableView.dataSource = self;
+  tableView.bounces = NO;
+  tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+  self.contentTableView = tableView;
+  [scrollView addSubview:tableView];
+  scrollView.contentSize = tableView.frame.size;
+  self.contentScrollView = scrollView;
+  
+}
+
+- (void)loadLeftView
+{
+  UITableView *leftTableView = [[UITableView alloc] initWithFrame:CGRectMake(0, 50, 100, self.contentScrollView.contentSize.height)];
+  leftTableView.backgroundColor = [UIColor cyanColor];
+  
+  leftTableView.delegate = self;
+  leftTableView.dataSource = self;
+  [self addSubview:leftTableView];
+  self.leftTableView = leftTableView;
+}
+
+
+#pragma mark - Data
+
+- (void)loadHeaderData
+{
+  NSArray *subviews = self.headerScrollView.subviews;
+  
+  for (UIView *subview in subviews) {
+    [subview removeFromSuperview];
+  }
+  for (int i = 0; i < [self.dataSource numberOfColumnsInTableView:self] ; i++) {
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(200 * i, 0, 199 , 50)];
+    view.backgroundColor = [self randomColor];
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 199, 49)];
+    label.text = [self.dataSource columnNameInColumn:i];
+    label.backgroundColor = [UIColor redColor];
+    [view addSubview:label];
+    [self.headerScrollView addSubview:view];
+  }
+}
+
+- (void)loadContentData
+{
+  [self.contentTableView reloadData];
+}
+
+- (void)loadLeftViewData
+{
+  [self.leftTableView reloadData];
+}
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-  UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
-
-  cell.backgroundColor = [UIColor grayColor];
-  for (int i = 0; i < 10 ; i++) {
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(200 * i, 0, 199 , 43)];\
-//    view.backgroundColor = [self randomColor];
-    view.backgroundColor = [UIColor whiteColor];
-    
-
-    [cell.contentView addSubview:view];
+  if (tableView != self.leftTableView) {
+    UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+    cell.backgroundColor = [UIColor grayColor];
+    for (int i = 0; i < [self.dataSource numberOfColumnsInTableView:self] ; i++) {
+      UIView *view = [[UIView alloc] initWithFrame:CGRectMake(200 * i, 0, 199 , 43)];
+      view.backgroundColor = [UIColor whiteColor];
+      
+      UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 199, 43)];
+      label.text = [self.dataSource contentAtColumn:i row:indexPath.row];
+      [view addSubview:label];
+      [cell.contentView addSubview:view];
+    }
+    return cell;
   }
-  
-  return cell;
+  else {
+    UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
+    cell.textLabel.text = [self.dataSource rowNameInRow:indexPath.row];
+    cell.backgroundColor = [self randomColor];
+    return cell;
+    
+  }
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-  return 30;
-}
-
-- (UIView *)addVerticalLineWithWidth:(CGFloat)width bgColor:(UIColor *)color atX:(CGFloat)x {
-  UIView *line = [[UIView alloc] initWithFrame:CGRectMake(x, 0.0f, width, self.bounds.size.height)];
-  line.backgroundColor = color;
-  line.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleRightMargin;
-  return line;
+  return [self.dataSource numberOfRowsInTableView:self];
 }
 
 
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+  NSLog(@"----------->%@",NSStringFromCGPoint(scrollView.contentOffset));
+  if (scrollView == self.contentScrollView) {
+    self.headerScrollView.contentOffset = scrollView.contentOffset;
+  }
+  else if (scrollView == self.headerScrollView) {
+    self.contentScrollView.contentOffset = scrollView.contentOffset;
+  }
+  else if (scrollView == self.leftTableView) {
+    self.contentTableView.contentOffset = scrollView.contentOffset;
+  }
+  else if (scrollView == self.contentTableView) {
+    self.leftTableView.contentOffset = scrollView.contentOffset;
+  }
+}
 
 - (UIColor *)randomColor{
   

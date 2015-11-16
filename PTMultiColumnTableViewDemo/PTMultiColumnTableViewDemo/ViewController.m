@@ -9,7 +9,7 @@
 #import "ViewController.h"
 #import "PTMultiColumnTableView.h"
 
-@interface ViewController ()
+@interface ViewController () <PTMultiColumnTableViewDataSource>
 
 @end
 
@@ -18,12 +18,33 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
   PTMultiColumnTableView *multiColumView = [[PTMultiColumnTableView alloc] initWithFrame:self.view.frame];
+  multiColumView.dataSource = self;
   [self.view addSubview:multiColumView];
 }
 
-- (void)didReceiveMemoryWarning {
-  [super didReceiveMemoryWarning];
-  // Dispose of any resources that can be recreated.
+
+- (NSInteger)numberOfColumnsInTableView:(PTMultiColumnTableView *)tableView
+{
+  return 20;
 }
+- (NSInteger)numberOfRowsInTableView:(PTMultiColumnTableView *)tableView
+{
+  return 30;
+}
+- (NSString *)columnNameInColumn:(NSInteger)column
+{
+  return [NSString stringWithFormat:@"--->%ld",(long)column];
+}
+- (NSString *)rowNameInRow:(NSInteger)row
+{
+  
+  return [NSString stringWithFormat:@">>>>>%ld",(long)row];
+  
+}
+- (NSString *)contentAtColumn:(NSInteger)column row:(NSInteger)row
+{
+  return [NSString stringWithFormat:@"****%d-%d",column,row];
+}
+
 
 @end
