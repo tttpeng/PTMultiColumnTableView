@@ -46,5 +46,17 @@
   return [NSString stringWithFormat:@"****%d-%d",column,row];
 }
 
+- (CGFloat)multiColumnTableView:(PTMultiColumnTableView *)tableView heightForContentCellInRow:(NSInteger)row
+{
+  return 100;
+}
+
+- (CGFloat)multiColumnTableView:(PTMultiColumnTableView *)tableView widthForContentCellInColumn:(NSInteger)column
+{
+  return 100;
+}
+
+
+
 
 @end

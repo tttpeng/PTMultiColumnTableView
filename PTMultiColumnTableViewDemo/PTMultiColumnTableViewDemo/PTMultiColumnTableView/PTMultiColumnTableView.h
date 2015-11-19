@@ -20,6 +20,9 @@
 - (NSString *)rowNameInRow:(NSInteger)row;
 - (NSString *)contentAtColumn:(NSInteger)column row:(NSInteger)row;
 
+- (CGFloat)multiColumnTableView:(PTMultiColumnTableView *)tableView widthForContentCellInColumn:(NSInteger)column;
+- (CGFloat)multiColumnTableView:(PTMultiColumnTableView *)tableView heightForContentCellInRow:(NSInteger)row;
+
 @end
 
 

@@ -63,8 +63,6 @@
 {
   
   UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(100, 50, self.frame.size.width - 50, self.frame.size.height - 50)];
-  scrollView.bounces = [UIColor brownColor];
-  
   scrollView.bounces = NO;
   [self addSubview:scrollView];
   scrollView.delegate = self;
@@ -101,14 +99,18 @@
   for (UIView *subview in subviews) {
     [subview removeFromSuperview];
   }
+  CGFloat x = 0.0;
+  CGFloat w = 0.0;
   for (int i = 0; i < [self.dataSource numberOfColumnsInTableView:self] ; i++) {
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(200 * i, 0, 199 , 50)];
+    w = [self.dataSource multiColumnTableView:self heightForContentCellInRow:i];
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(x, 0, w , 50)];
     view.backgroundColor = [self randomColor];
-    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 199, 49)];
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(x, 0, w, 49)];
     label.text = [self.dataSource columnNameInColumn:i];
     label.backgroundColor = [UIColor redColor];
     [view addSubview:label];
     [self.headerScrollView addSubview:view];
+    x = x + w + 1;
   }
 }
 
@@ -127,13 +129,20 @@
   if (tableView != self.leftTableView) {
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
     cell.backgroundColor = [UIColor grayColor];
+    
+    CGFloat x = 0.0;
+    CGFloat w = 0.0;
+    CGFloat h = [self.dataSource multiColumnTableView:self heightForContentCellInRow:indexPath.row];
     for (int i = 0; i < [self.dataSource numberOfColumnsInTableView:self] ; i++) {
-      UIView *view = [[UIView alloc] initWithFrame:CGRectMake(200 * i, 0, 199 , 43)];
+      w = [self.dataSource multiColumnTableView:self heightForContentCellInRow:i];
+      UIView *view = [[UIView alloc] initWithFrame:CGRectMake(x, 0, w , h - 1)];
       view.backgroundColor = [UIColor whiteColor];
       
-      UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 199, 43)];
+      UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, w, h - 1)];
       label.text = [self.dataSource contentAtColumn:i row:indexPath.row];
       [view addSubview:label];
+      
+      x = x + w + 1;
       [cell.contentView addSubview:view];
     }
     return cell;
@@ -153,9 +162,14 @@
 }
 
 
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+  return [self.dataSource multiColumnTableView:self heightForContentCellInRow:indexPath.row];
+}
+
+
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-  NSLog(@"----------->%@",NSStringFromCGPoint(scrollView.contentOffset));
   if (scrollView == self.contentScrollView) {
     self.headerScrollView.contentOffset = scrollView.contentOffset;
   }
